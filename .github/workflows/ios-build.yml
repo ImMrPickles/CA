@@ -299,8 +299,6 @@ jobs:
             fi
             echo "Found app at: $APP_PATH"
 
-            cd ..
-
             rm -rf build
             mkdir -p build/Payload
 
