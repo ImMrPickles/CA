@@ -192,51 +192,53 @@ jobs:
             cd "$IOS_PATH"
 
           elif [ "$PROJECT_TYPE" = "reactnative" ] || [ "$PROJECT_TYPE" = "expo" ]; then
-            echo "Building React Native iOS ($CONFIGURATION)..."
+            echo "Building React Native / Expo iOS ($CONFIGURATION)..."
             BUILD_CMD="xcodebuild"
 
             if [ -n "$WORKSPACE" ]; then
-              BUILD_CMD="$BUILD_CMD -workspace $WORKSPACE"
-              if [ -z "$SCHEME" ]; then
-                SCHEME=$(basename "$WORKSPACE" .xcworkspace)
-              fi
+              BUILD_CMD="$BUILD_CMD -workspace \"$WORKSPACE\""
             elif [ -n "$PROJECT" ]; then
-              BUILD_CMD="$BUILD_CMD -project $PROJECT"
-              if [ -z "$SCHEME" ]; then
+              BUILD_CMD="$BUILD_CMD -project \"$PROJECT\""
+            fi
+
+            if [ -z "$SCHEME" ]; then
+              if [ -n "$WORKSPACE" ]; then
+                SCHEME=$(basename "$WORKSPACE" .xcworkspace)
+              elif [ -n "$PROJECT" ]; then
                 SCHEME=$(basename "$PROJECT" .xcodeproj)
               fi
             fi
 
-            BUILD_CMD="$BUILD_CMD -scheme $SCHEME"
-            BUILD_CMD="$BUILD_CMD -configuration $CONFIGURATION"
+            BUILD_CMD="$BUILD_CMD -scheme \"$SCHEME\""
+            BUILD_CMD="$BUILD_CMD -configuration \"$CONFIGURATION\""
             BUILD_CMD="$BUILD_CMD -destination 'generic/platform=iOS'"
-            BUILD_CMD="$BUILD_CMD -derivedDataPath $DERIVED_DATA_PATH"
+            BUILD_CMD="$BUILD_CMD -derivedDataPath \"$DERIVED_DATA_PATH\""
             BUILD_CMD="$BUILD_CMD CODE_SIGNING_ALLOWED=NO"
             BUILD_CMD="$BUILD_CMD COMPILER_INDEX_STORE_ENABLE=NO"
             BUILD_CMD="$BUILD_CMD -quiet build"
 
-            echo "Running: $BUILD_CMD"
-            eval $BUILD_CMD
+            echo "Running build for scheme: $SCHEME"
+            eval "$BUILD_CMD"
 
           else
             BUILD_CMD="xcodebuild"
 
             if [ -n "$WORKSPACE" ]; then
-              BUILD_CMD="$BUILD_CMD -workspace $WORKSPACE"
+              BUILD_CMD="$BUILD_CMD -workspace \"$WORKSPACE\""
             elif [ -n "$PROJECT" ]; then
-              BUILD_CMD="$BUILD_CMD -project $PROJECT"
+              BUILD_CMD="$BUILD_CMD -project \"$PROJECT\""
             fi
 
-            BUILD_CMD="$BUILD_CMD -scheme $SCHEME"
-            BUILD_CMD="$BUILD_CMD -configuration $CONFIGURATION"
+            BUILD_CMD="$BUILD_CMD -scheme \"$SCHEME\""
+            BUILD_CMD="$BUILD_CMD -configuration \"$CONFIGURATION\""
             BUILD_CMD="$BUILD_CMD -destination 'generic/platform=iOS'"
-            BUILD_CMD="$BUILD_CMD -derivedDataPath $DERIVED_DATA_PATH"
+            BUILD_CMD="$BUILD_CMD -derivedDataPath \"$DERIVED_DATA_PATH\""
             BUILD_CMD="$BUILD_CMD COMPILER_INDEX_STORE_ENABLE=NO"
             BUILD_CMD="$BUILD_CMD DEBUG_INFORMATION_FORMAT=dwarf"
             BUILD_CMD="$BUILD_CMD ONLY_ACTIVE_ARCH=YES"
-            BUILD_CMD="$BUILD_CMD -quiet"
             BUILD_CMD="$BUILD_CMD SWIFT_ENABLE_COMPILE_CACHE=YES"
             BUILD_CMD="$BUILD_CMD CLANG_ENABLE_COMPILE_CACHE=YES"
+            BUILD_CMD="$BUILD_CMD -quiet"
 
             if [ "$USE_SIGNING" = "true" ]; then
               BUILD_CMD="$BUILD_CMD -archivePath ../build/App.xcarchive archive"
@@ -244,8 +246,8 @@ jobs:
               BUILD_CMD="$BUILD_CMD CODE_SIGNING_ALLOWED=NO build"
             fi
 
-            echo "Running: $BUILD_CMD"
-            eval $BUILD_CMD
+            echo "Running native build for scheme: $SCHEME"
+            eval "$BUILD_CMD"
           fi
 
           if [ "$USE_SIGNING" = "true" ]; then
@@ -309,15 +311,14 @@ jobs:
         run: |
           echo "Current directory:"
           pwd
-          echo "Files:"
-          find . -name "*.ipa" -type f -ls
+          echo "Searching for IPA files:"
+          find . -name "*.ipa" -type f -ls || true
           echo "Build folder:"
           ls -la build || true
 
       - name: Check IPA exists
         run: |
-          echo "Searching for IPA..."
-          find . -name "*.ipa" -type f
+          echo "Verifying IPA exists..."
           IPA_COUNT=$(find . -name "*.ipa" -type f | wc -l | xargs)
           if [ "$IPA_COUNT" = "0" ]; then
             echo "No IPA file was generated."
