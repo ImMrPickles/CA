@@ -284,9 +284,9 @@ jobs:
             if [ "$PROJECT_TYPE" = "flutter" ]; then
               APP_PATH=$(find "${GITHUB_WORKSPACE}/build/ios/iphoneos" -name "*.app" -type d | head -1)
             else
-              echo "Searching for app..." -1)
+              echo "Searching for app..."
 
-              APP_PATH=$(find "$DERIVED_DATA_PATH" -name "*.app" -type d | head -1)
+              APP_PATH=$(find "$DERIVED_DATA_PATH/Build/Products/${CONFIGURATION}-iphoneos" -name "*.app" -type d | head -1)
               echo "Found:"
               echo "$APP_PATH"
             fi
