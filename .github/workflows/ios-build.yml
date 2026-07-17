@@ -279,7 +279,6 @@ jobs:
             echo "Created signed IPA: build/$BUILD_ID.ipa"
 
           else
-            cd ..
 
             if [ "$PROJECT_TYPE" = "flutter" ]; then
               APP_PATH=$(find "${GITHUB_WORKSPACE}/build/ios/iphoneos" -name "*.app" -type d | head -1)
@@ -299,14 +298,14 @@ jobs:
             echo "Found app at: $APP_PATH"
             echo "Preparing IPA..."
 
-            mkdir -p build/Payload
-            cp -R "$APP_PATH" build/Payload/
+            mkdir -p "${GITHUB_WORKSPACE}/build/Payload"
+            cp -R "$APP_PATH" "${GITHUB_WORKSPACE}/build/Payload/"
 
             echo "Creating IPA..."
-            cd build
+            cd "${GITHUB_WORKSPACE}/build"
             zip -rq "$BUILD_ID.ipa" Payload
             rm -rf Payload
-            cd ..
+            cd "${GITHUB_WORKSPACE}"
 
             echo "Checking IPA:"
             ls -lah build
@@ -315,30 +314,26 @@ jobs:
             ls -lh "build/$BUILD_ID.ipa"
           fi
 
-      - name: Debug IPA
-        run: |
-          echo "Current directory:"
-          pwd
-          echo "Searching for IPA files:"
-          find . -name "*.ipa" -type f -ls || true
-          echo "Build folder:"
-          ls -la build || true
-
       - name: Check IPA exists
         run: |
           echo "Verifying IPA exists..."
+          ls -lah build || true
+
           IPA_COUNT=$(find . -name "*.ipa" -type f | wc -l | xargs)
+
           if [ "$IPA_COUNT" = "0" ]; then
             echo "No IPA file was generated."
+            find . -maxdepth 3 -type f | grep -E "ipa|build" || true
             exit 1
           fi
+
+          echo "Found $IPA_COUNT IPA file(s)"
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: ipa
-          path: |
-            **/*.ipa
+          path: build/*.ipa
           retention-days: 7
           if-no-files-found: error
 
