@@ -1,0 +1,14 @@
+{
+  "project": "CA",
+  "platform": "ios",
+  "github": {
+    "owner": "ImMrPickles",
+    "repo": "CA"
+  },
+  "ios": {},
+  "flutter": {
+    "watch": {}
+  },
+  "reactNative": {},
+  "mobai": {}
+}
