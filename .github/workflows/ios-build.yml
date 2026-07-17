@@ -26,7 +26,7 @@ on:
         description: 'Build configuration (Debug is faster, Release for production)'
         required: false
         type: string
-        default: 'Debug'
+        default: 'Release'
       flutter_version:
         description: 'Flutter version to use (e.g., 3.24.0). Empty means latest stable.'
         required: false
@@ -213,7 +213,7 @@ jobs:
             BUILD_CMD="$BUILD_CMD -configuration \"$CONFIGURATION\""
             BUILD_CMD="$BUILD_CMD -destination 'generic/platform=iOS'"
             BUILD_CMD="$BUILD_CMD -derivedDataPath \"$DERIVED_DATA_PATH\""
-            BUILD_CMD="$BUILD_CMD CODE_SIGNING_ALLOWED=NO"
+            BUILD_CMD="$BUILD_CMD CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO"
             BUILD_CMD="$BUILD_CMD COMPILER_INDEX_STORE_ENABLE=NO"
             BUILD_CMD="$BUILD_CMD -quiet build"
 
@@ -248,6 +248,10 @@ jobs:
 
             echo "Running native build for scheme: $SCHEME"
             eval "$BUILD_CMD"
+
+            echo "===== BUILD OUTPUT ====="
+            find "$DERIVED_DATA_PATH" -maxdepth 5 -name "*.app" -type d
+            echo "========================"
           fi
 
           if [ "$USE_SIGNING" = "true" ]; then
@@ -280,7 +284,11 @@ jobs:
             if [ "$PROJECT_TYPE" = "flutter" ]; then
               APP_PATH=$(find "${GITHUB_WORKSPACE}/build/ios/iphoneos" -name "*.app" -type d | head -1)
             else
-              APP_PATH=$(find "$DERIVED_DATA_PATH/Build/Products/${CONFIGURATION}-iphoneos" -name "*.app" -type d | head -1)
+              echo "Searching for app..." -1)
+
+              APP_PATH=$(find "$DERIVED_DATA_PATH" -name "*.app" -type d | head -1)
+              echo "Found:"
+              echo "$APP_PATH"
             fi
 
             if [ -z "$APP_PATH" ]; then
